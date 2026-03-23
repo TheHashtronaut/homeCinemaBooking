@@ -13,6 +13,7 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   EMAIL_EXISTS: "That email is already registered.",
   NOT_FOUND: "We couldn’t find the requested item.",
   NO_CAPACITY: "No capacity left for this showtime.",
+  SHOWTIME_ENDED: "This showtime has already ended.",
   BOOKING_NOT_PENDING: "This booking request is no longer pending.",
   SESSION_EXPIRED: "Your session expired. Please log in again.",
 };

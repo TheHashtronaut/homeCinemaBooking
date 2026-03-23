@@ -10,6 +10,7 @@ const EMPTY_DB = {
   bookingRequests: [],
   users: [],
   sessions: [],
+  defaultShowtimeDisabled: [],
 };
 
 async function ensureDbFile() {
@@ -31,6 +32,7 @@ export async function readDb() {
     bookingRequests: parsed.bookingRequests ?? [],
     users: parsed.users ?? [],
     sessions: parsed.sessions ?? [],
+    defaultShowtimeDisabled: parsed.defaultShowtimeDisabled ?? [],
   };
 }
 

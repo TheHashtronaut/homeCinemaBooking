@@ -26,12 +26,16 @@ export default async function CustomerPage({
   const selectedMovieId = searchParams?.movieId ?? movies[0]?.id;
 
   const now = new Date();
+  // Only show bookable slots: showtimes whose end is not in the past.
+  // Backend uses `endsAt >= from`, so setting `from = now` prevents already-ended slots
+  // from appearing on this page.
+  const from = new Date(now.getTime() - 5 * 60 * 1000); // small safety window
   const to = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
   const showtimesData = selectedMovieId
     ? await backendFetch(
         `/api/showtimes?movieId=${encodeURIComponent(selectedMovieId)}&from=${encodeURIComponent(
-          now.toISOString()
+          from.toISOString()
         )}&to=${encodeURIComponent(to.toISOString())}`
       )
     : { showtimes: [] };
@@ -131,6 +135,18 @@ export default async function CustomerPage({
             <div style={{ display: "grid", gap: 12 }}>
               {showtimesByDate[dateKey].map((s) => {
                 const remaining = s.remaining ?? Math.max(0, s.capacity - (s.approvedCount ?? 0));
+                const isEnded = new Date(s.endsAt).getTime() <= now.getTime();
+                const canRequest =
+                  Boolean(user && user.role === "customer") && remaining > 0 && !isEnded;
+                const bookingReason = !user
+                  ? "Log in as customer to request"
+                  : user.role !== "customer"
+                    ? "Only customers can request bookings"
+                    : isEnded
+                      ? "This showtime has ended"
+                      : remaining <= 0
+                        ? "No capacity left"
+                        : "";
                 return (
                   <div
                     key={s.id}
@@ -168,18 +184,10 @@ export default async function CustomerPage({
                       <button
                         className="btn btnPrimary"
                         type="submit"
-                        disabled={!user || user.role !== "customer" || remaining <= 0}
-                        title={
-                          !user
-                            ? "Log in to request a booking"
-                            : user.role !== "customer"
-                              ? "Only customers can request bookings"
-                              : remaining <= 0
-                                ? "No capacity left"
-                                : "Request booking"
-                        }
+                        disabled={!canRequest}
+                        title={bookingReason || "Request booking"}
                       >
-                        Request booking
+                        {canRequest ? "Request booking" : bookingReason}
                       </button>
                     </form>
                   </div>

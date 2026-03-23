@@ -12,6 +12,92 @@ const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000";
 const COOKIE_NAME = "hc_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+function localDateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function isDefaultShowtime({ startsAt, endsAt }) {
+  const s = new Date(startsAt);
+  const e = new Date(endsAt);
+  return (
+    s.getHours() === 19 &&
+    s.getMinutes() === 0 &&
+    s.getSeconds() === 0 &&
+    e.getHours() === 23 &&
+    e.getMinutes() === 0 &&
+    e.getSeconds() === 0 &&
+    e.getTime() - s.getTime() === 4 * 60 * 60 * 1000
+  );
+}
+
+async function seedDefaultShowtimes(daysAhead = 7) {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+  // Persisted seeding:
+  // - only creates missing default showtimes for each movie
+  // - skips any entries that are disabled (deleted defaults)
+  // - idempotent on restarts via dedupe on movieId + startsAt ISO
+  await updateDb((d) => {
+    d.defaultShowtimeDisabled = d.defaultShowtimeDisabled ?? [];
+    d.showtimes = d.showtimes ?? [];
+
+    const disabledSet = new Set(
+      (d.defaultShowtimeDisabled ?? []).map((x) => `${x.movieId}|${x.date}`)
+    );
+
+    for (const movie of d.movies) {
+      for (let i = 0; i < daysAhead; i++) {
+        const date = new Date(startOfToday.getTime() + i * 24 * 60 * 60 * 1000);
+        const dateKey = localDateKey(date);
+
+        const disabledKey = `${movie.id}|${dateKey}`;
+        if (disabledSet.has(disabledKey)) continue;
+
+        const startsAt = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          19,
+          0,
+          0,
+          0
+        );
+        const endsAt = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          23,
+          0,
+          0,
+          0
+        );
+
+        const startsAtIso = startsAt.toISOString();
+        const alreadyExists = d.showtimes.some(
+          (s) => s.movieId === movie.id && s.startsAt === startsAtIso
+        );
+        if (alreadyExists) continue;
+
+        d.showtimes.push({
+          id: newId(),
+          movieId: movie.id,
+          startsAt: startsAtIso,
+          endsAt: endsAt.toISOString(),
+          capacity: 10,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    return d;
+  });
+}
+
 function frontendUrl(pathname, params) {
   const base = FRONTEND_URL.endsWith("/") ? FRONTEND_URL.slice(0, -1) : FRONTEND_URL;
   const url = new URL(pathname.startsWith("/") ? pathname : `/${pathname}`, base);
@@ -260,6 +346,7 @@ app.post("/api/admin/movies", async (req, res) => {
     });
     return d;
   });
+  await seedDefaultShowtimes(7);
   return res.redirect(frontendUrl("/admin/movies"));
 });
 
@@ -292,7 +379,9 @@ app.get("/api/showtimes", async (req, res) => {
 
   let rows = db.showtimes.slice();
   if (movieId) rows = rows.filter((s) => s.movieId === movieId);
-  if (from && !Number.isNaN(from.getTime())) rows = rows.filter((s) => new Date(s.startsAt) >= from);
+  // Availability: showtimes are bookable if they haven't ended yet.
+  // Using `endsAt >= from` avoids hiding slots that are currently running.
+  if (from && !Number.isNaN(from.getTime())) rows = rows.filter((s) => new Date(s.endsAt) >= from);
   if (to && !Number.isNaN(to.getTime())) rows = rows.filter((s) => new Date(s.startsAt) <= to);
 
   rows.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -328,6 +417,14 @@ app.post("/api/admin/showtimes", async (req, res) => {
 
   await updateDb((d) => {
     const now = new Date().toISOString();
+
+    // If an admin manually creates the default slot, allow it again by removing
+    // any disabled marker for that movie/date.
+    const defaultMatches = isDefaultShowtime({
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+    });
+    const dateKey = localDateKey(startsAt);
     d.showtimes.push({
       id: newId(),
       movieId: parsed.data.movieId,
@@ -337,8 +434,50 @@ app.post("/api/admin/showtimes", async (req, res) => {
       createdAt: now,
       updatedAt: now,
     });
+
+    if (defaultMatches) {
+      d.defaultShowtimeDisabled = (d.defaultShowtimeDisabled ?? []).filter(
+        (x) => !(x.movieId === parsed.data.movieId && x.date === dateKey)
+      );
+    }
     return d;
   });
+  return res.redirect(frontendUrl("/admin/showtimes"));
+});
+
+app.post("/api/admin/showtimes/:id/delete", async (req, res) => {
+  if (!(await requireRole(req, res, "admin", "/admin/showtimes"))) return;
+
+  const showtimeId = req.params.id;
+  const db = await readDb();
+  const showtime = db.showtimes.find((s) => s.id === showtimeId);
+
+  if (!showtime) return redirectToast(res, "/admin/showtimes", "error", "NOT_FOUND");
+
+  const defaultMatches = isDefaultShowtime({
+    startsAt: showtime.startsAt,
+    endsAt: showtime.endsAt,
+  });
+  const movieId = showtime.movieId;
+  const dateKey = localDateKey(new Date(showtime.startsAt));
+
+  await updateDb((d) => {
+    d.showtimes = (d.showtimes ?? []).filter((s) => s.id !== showtimeId);
+
+    if (defaultMatches) {
+      d.defaultShowtimeDisabled = d.defaultShowtimeDisabled ?? [];
+      const disabledKey = `${movieId}|${dateKey}`;
+      const disabledSet = new Set(
+        (d.defaultShowtimeDisabled ?? []).map((x) => `${x.movieId}|${x.date}`)
+      );
+      if (!disabledSet.has(disabledKey)) {
+        d.defaultShowtimeDisabled.push({ movieId, date: dateKey });
+      }
+    }
+
+    return d;
+  });
+
   return res.redirect(frontendUrl("/admin/showtimes"));
 });
 
@@ -350,8 +489,12 @@ app.post("/api/bookings", async (req, res) => {
   if (!parsed.success) return redirectToast(res, "/customer", "error", "INVALID_INPUT");
 
   const db = await readDb();
-  if (!db.showtimes.find((s) => s.id === parsed.data.showtimeId)) {
-    return redirectToast(res, "/customer", "error", "NOT_FOUND");
+  const showtime = db.showtimes.find((s) => s.id === parsed.data.showtimeId);
+  if (!showtime) return redirectToast(res, "/customer", "error", "NOT_FOUND");
+
+  // Availability: do not allow booking already-ended showtimes.
+  if (new Date(showtime.endsAt).getTime() <= Date.now()) {
+    return redirectToast(res, "/customer", "error", "SHOWTIME_ENDED");
   }
 
   await updateDb((d) => {
@@ -446,7 +589,14 @@ app.post("/api/admin/bookings/:id/cancel", async (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
-});
+seedDefaultShowtimes(7)
+  .catch((err) => {
+    // Don't prevent the server from starting; seeding is best-effort.
+    console.error("Default showtime seeding failed:", err);
+  })
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`Backend listening on http://localhost:${PORT}`);
+    });
+  });
 

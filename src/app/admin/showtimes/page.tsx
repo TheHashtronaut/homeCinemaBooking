@@ -118,8 +118,15 @@ export default async function AdminShowtimesPage() {
                     </div>
                   </div>
 
-                  <div className="muted" style={{ fontSize: 12, alignSelf: "center" }}>
-                    {s.id.slice(0, 10)}…
+                  <div style={{ display: "grid", justifyItems: "end", gap: 10, alignSelf: "center" }}>
+                    <form action={`${BACKEND_URL}/api/admin/showtimes/${s.id}/delete`} method="post">
+                      <button className="btn btnDanger" type="submit" title="Delete this showtime permanently">
+                        Delete
+                      </button>
+                    </form>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      {s.id.slice(0, 10)}…
+                    </div>
                   </div>
                 </div>
               );
