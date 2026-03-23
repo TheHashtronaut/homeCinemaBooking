@@ -1,0 +1,16 @@
+node_modules
+
+/generated/prisma
+
+.next
+
+.env
+.env.local
+.env.*.local
+
+data/
+
+node_modules
+
+/generated/prisma
+node_modules
