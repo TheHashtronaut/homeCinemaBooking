@@ -60,9 +60,15 @@ export default async function LoginPage({
         </form>
 
         <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div className="muted" style={{ fontSize: 13 }}>
-            Admin bootstrap: <b>admin</b> / <b>admin</b>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div className="statusChip statusChipPending" style={{ padding: "8px 10px" }}>
+              Admin bootstrap
+            </div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              <b>admin</b> / <b>admin</b>
+            </div>
           </div>
+
           <Link href="/auth/register" className="btn">
             Create account
           </Link>

@@ -37,11 +37,13 @@ export default async function AdminMoviesPage() {
     <main className="card cardPadding">
       <h1 className="title">Manage Movies</h1>
       <p className="muted" style={{ marginTop: 6 }}>
-        Edit movie name and poster URL. Customer UI shows placeholders when empty.
+        Edit movie name, poster URL, and banner/gallery image URL. Customer UI shows placeholders when empty.
       </p>
 
       <section style={{ marginTop: 18 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Add a movie</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Add a movie
+        </h2>
         <form action={`${BACKEND_URL}/api/admin/movies`} method="post" className="card" style={{ padding: 14 }}>
           <div className="formGrid">
             <div>
@@ -51,6 +53,30 @@ export default async function AdminMoviesPage() {
             <div>
               <div className="fieldLabel">Poster URL (optional)</div>
               <input name="posterUrl" className="input" placeholder="https://..." />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="fieldLabel">Banner / gallery image URL (optional)</div>
+              <input name="bannerUrl" className="input" placeholder="https://... (used as banner on movie page)" />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="fieldLabel">Description (optional)</div>
+              <textarea name="description" className="textarea input" placeholder="Short description / plot summary" />
+            </div>
+            <div>
+              <div className="fieldLabel">Director (optional)</div>
+              <input name="director" className="input" placeholder="e.g. Christopher Nolan" />
+            </div>
+            <div>
+              <div className="fieldLabel">Runtime (optional)</div>
+              <input name="runtime" className="input" placeholder="e.g. 2h 10m" />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="fieldLabel">Genre (optional)</div>
+              <input name="genre" className="input" placeholder="e.g. Thriller, Sci-Fi" />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="fieldLabel">Rating (optional)</div>
+              <input name="rating" className="input" placeholder="e.g. PG-13 / 8.2" />
             </div>
           </div>
           <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -65,7 +91,9 @@ export default async function AdminMoviesPage() {
       </section>
 
       <section style={{ marginTop: 22 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Existing movies</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Existing movies
+        </h2>
         {movies.length === 0 ? (
           <div className="muted">No movies yet.</div>
         ) : (
@@ -75,11 +103,8 @@ export default async function AdminMoviesPage() {
               return (
                 <div
                   key={movie.id}
-                  style={{
-                    padding: 14,
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                  }}
+                  className="card"
+                  style={{ padding: 14 }}
                 >
                   <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 14, alignItems: "start" }}>
                     <MoviePoster posterUrl={movie.posterUrl} />
@@ -102,6 +127,60 @@ export default async function AdminMoviesPage() {
                             className="input"
                             defaultValue={movie.posterUrl ?? ""}
                             placeholder="https://..."
+                          />
+                        </div>
+                        <div style={{ gridColumn: "span 2" }}>
+                          <div className="fieldLabel">Banner / gallery image URL</div>
+                          <input
+                            name="bannerUrl"
+                            className="input"
+                            defaultValue={movie.bannerUrl ?? ""}
+                            placeholder="https://... (used as banner on movie page)"
+                          />
+                        </div>
+                        <div style={{ gridColumn: "span 2" }}>
+                          <div className="fieldLabel">Description</div>
+                          <textarea
+                            name="description"
+                            className="textarea input"
+                            defaultValue={movie.description ?? ""}
+                            placeholder="Short description / plot summary"
+                          />
+                        </div>
+                        <div>
+                          <div className="fieldLabel">Director</div>
+                          <input
+                            name="director"
+                            className="input"
+                            defaultValue={movie.director ?? ""}
+                            placeholder="e.g. Christopher Nolan"
+                          />
+                        </div>
+                        <div>
+                          <div className="fieldLabel">Runtime</div>
+                          <input
+                            name="runtime"
+                            className="input"
+                            defaultValue={movie.runtime ?? ""}
+                            placeholder="e.g. 2h 10m"
+                          />
+                        </div>
+                        <div style={{ gridColumn: "span 2" }}>
+                          <div className="fieldLabel">Genre</div>
+                          <input
+                            name="genre"
+                            className="input"
+                            defaultValue={movie.genre ?? ""}
+                            placeholder="e.g. Thriller, Sci-Fi"
+                          />
+                        </div>
+                        <div style={{ gridColumn: "span 2" }}>
+                          <div className="fieldLabel">Rating</div>
+                          <input
+                            name="rating"
+                            className="input"
+                            defaultValue={movie.rating ?? ""}
+                            placeholder="e.g. PG-13 / 8.2"
                           />
                         </div>
                       </div>

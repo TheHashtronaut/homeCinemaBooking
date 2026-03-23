@@ -49,10 +49,10 @@ export default function ToastFromQuery() {
 
   const bg =
     toastType === "error"
-      ? "rgba(252,165,165,0.14)"
-      : "rgba(125,211,252,0.14)";
+      ? "rgba(var(--danger-rgb),0.14)"
+      : "rgba(var(--accent-rgb),0.14)";
   const border =
-    toastType === "error" ? "rgba(252,165,165,0.55)" : "rgba(125,211,252,0.55)";
+    toastType === "error" ? "rgba(var(--danger-rgb),0.55)" : "rgba(var(--accent-rgb),0.55)";
 
   return (
     <div

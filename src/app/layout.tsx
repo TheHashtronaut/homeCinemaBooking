@@ -20,9 +20,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <header className="siteHeader">
             <div className="siteHeaderInner">
               <div className="siteBrand">
-                <div className="siteLogo">Home Cinema</div>
+                <div className="siteLogo">The Hastronema</div>
                 <div className="muted" style={{ fontSize: 13, marginTop: 2 }}>
-                  Book slots. Admin approves.
+                  Book slots. Harsh Approved.
                 </div>
               </div>
 

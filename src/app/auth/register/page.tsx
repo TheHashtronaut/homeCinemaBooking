@@ -67,8 +67,13 @@ export default async function RegisterPage({
         </form>
 
         <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div className="muted" style={{ fontSize: 13 }}>
-            Use `/data/db.json` to inspect stored users.
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div className="statusChip statusChipApproved" style={{ padding: "8px 10px" }}>
+              Customer account
+            </div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              Use <b>/data/db.json</b> to inspect stored users.
+            </div>
           </div>
           <Link href="/auth/login" className="btn">
             Back to login

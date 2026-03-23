@@ -2,11 +2,11 @@ import { backendFetch, getCurrentUserFromBackend } from "@/lib/backendApi";
 import { BookingRequest, Movie, Showtime } from "@/lib/types";
 
 function statusLabel(status: string) {
-  if (status === "PENDING") return { text: "Pending", color: "rgba(125,211,252,0.95)" };
-  if (status === "APPROVED") return { text: "Approved", color: "rgba(125,211,252,0.95)" };
-  if (status === "REJECTED") return { text: "Rejected", color: "rgba(252,165,165,0.95)" };
-  if (status === "CANCELLED") return { text: "Cancelled", color: "rgba(252,165,165,0.95)" };
-  return { text: status, color: "rgba(255,255,255,0.8)" };
+  if (status === "PENDING") return { text: "Pending", chipClass: "statusChipPending" };
+  if (status === "APPROVED") return { text: "Approved", chipClass: "statusChipApproved" };
+  if (status === "REJECTED") return { text: "Rejected", chipClass: "statusChipRejected" };
+  if (status === "CANCELLED") return { text: "Cancelled", chipClass: "statusChipCancelled" };
+  return { text: status, chipClass: "" };
 }
 
 function formatDate(d: Date) {
@@ -65,7 +65,8 @@ export default async function MyBookingsPage() {
               return (
                 <div
                   key={b.id}
-                  style={{ padding: 14, borderRadius: 16, border: "1px solid rgba(255,255,255,0.14)" }}
+                  className="card"
+                  style={{ padding: 14 }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
@@ -96,7 +97,7 @@ export default async function MyBookingsPage() {
                     </div>
 
                     <div style={{ minWidth: 140 }}>
-                      <div style={{ color: st.color, fontWeight: 800 }}>{st.text}</div>
+                      <div className={`statusChip ${st.chipClass}`}>{st.text}</div>
                       <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
                         ID: {b.id.slice(0, 10)}…
                       </div>

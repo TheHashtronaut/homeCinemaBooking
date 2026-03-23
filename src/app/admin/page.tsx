@@ -40,7 +40,9 @@ export default async function AdminDashboardPage() {
       </p>
 
       <section style={{ marginTop: 18 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Pending requests</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Pending requests
+        </h2>
         {pending.length === 0 ? (
           <div className="muted">No pending approvals.</div>
         ) : (
@@ -57,11 +59,15 @@ export default async function AdminDashboardPage() {
               return (
                 <div
                   key={req.id}
-                  style={{ padding: 14, borderRadius: 14, border: "1px solid rgba(255,255,255,0.14)" }}
+                  className="card"
+                  style={{ padding: 14 }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{movieTitle}</div>
+                      <div className="statusChip statusChipPending" style={{ marginTop: 10 }}>
+                        Pending
+                      </div>
                       <div className="muted" style={{ marginTop: 4 }}>
                         {dateStr} · {timeRange}
                       </div>
@@ -70,7 +76,7 @@ export default async function AdminDashboardPage() {
                       </div>
                       <div style={{ marginTop: 8, fontSize: 13 }}>
                         Remaining capacity:{" "}
-                        <span style={{ color: remaining > 0 ? "rgba(125,211,252,0.95)" : "rgba(252,165,165,0.95)" }}>
+                        <span style={{ color: remaining > 0 ? "rgba(var(--accent-rgb),0.95)" : "rgba(255,255,255,0.72)" }}>
                           {remaining}
                         </span>{" "}
                         / {showtime?.capacity ?? 10}
@@ -84,14 +90,14 @@ export default async function AdminDashboardPage() {
                         style={{ display: "grid", gap: 8 }}
                       >
                         <input type="text" name="adminNote" className="input" placeholder="Admin note (optional)" />
-                        <button
-                          className="btn btnPrimary"
+                        <input
+                          className="actionLink actionLinkPrimary"
                           type="submit"
+                          value="Approve"
                           disabled={remaining <= 0}
                           title={remaining <= 0 ? "No capacity left for this showtime" : "Approve booking"}
-                        >
-                          Approve
-                        </button>
+                          style={{ justifySelf: "start" }}
+                        />
                       </form>
 
                       <form action={`${BACKEND_URL}/api/admin/bookings/${req.id}/reject`} method="post" style={{ display: "grid", gap: 8 }}>
@@ -101,9 +107,12 @@ export default async function AdminDashboardPage() {
                           className="input"
                           placeholder="Rejection reason (optional)"
                         />
-                        <button className="btn" type="submit">
-                          Reject
-                        </button>
+                        <input
+                          className="actionLink actionLinkDanger"
+                          type="submit"
+                          value="Reject"
+                          style={{ justifySelf: "start" }}
+                        />
                       </form>
                     </div>
                   </div>
@@ -115,7 +124,9 @@ export default async function AdminDashboardPage() {
       </section>
 
       <section style={{ marginTop: 22 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Approved bookings (admin can cancel)</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Approved bookings (admin can cancel)
+        </h2>
         {approved.length === 0 ? (
           <div className="muted">No approved bookings yet.</div>
         ) : (
@@ -131,11 +142,15 @@ export default async function AdminDashboardPage() {
               return (
                 <div
                   key={booking.id}
-                  style={{ padding: 14, borderRadius: 14, border: "1px solid rgba(255,255,255,0.14)" }}
+                  className="card"
+                  style={{ padding: 14 }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{movieTitle}</div>
+                      <div className="statusChip statusChipApproved" style={{ marginTop: 10 }}>
+                        Approved
+                      </div>
                       <div className="muted" style={{ marginTop: 4 }}>
                         {dateStr} · {timeRange}
                       </div>
@@ -150,9 +165,12 @@ export default async function AdminDashboardPage() {
                       style={{ display: "grid", gap: 8, alignSelf: "flex-start" }}
                     >
                       <input type="text" name="adminNote" className="input" placeholder="Cancel note (optional)" />
-                      <button className="btn btnDanger" type="submit">
-                        Cancel booking
-                      </button>
+                      <input
+                        className="actionLink actionLinkDanger"
+                        type="submit"
+                        value="Cancel booking"
+                        style={{ justifySelf: "start" }}
+                      />
                     </form>
                   </div>
                 </div>

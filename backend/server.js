@@ -331,6 +331,12 @@ app.post("/api/admin/movies", async (req, res) => {
   const schema = z.object({
     title: z.string().max(500).optional(),
     posterUrl: z.string().max(2000).optional(),
+    bannerUrl: z.string().max(2000).optional(),
+    description: z.string().max(4000).optional(),
+    director: z.string().max(500).optional(),
+    runtime: z.string().max(100).optional(),
+    genre: z.string().max(300).optional(),
+    rating: z.string().max(100).optional(),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return redirectToast(res, "/admin/movies", "error", "INVALID_INPUT");
@@ -341,6 +347,12 @@ app.post("/api/admin/movies", async (req, res) => {
       id: newId(),
       title: parsed.data.title?.trim() ? parsed.data.title.trim() : null,
       posterUrl: parsed.data.posterUrl?.trim() ? parsed.data.posterUrl.trim() : null,
+      bannerUrl: parsed.data.bannerUrl?.trim() ? parsed.data.bannerUrl.trim() : null,
+      description: parsed.data.description?.trim() ? parsed.data.description.trim() : null,
+      director: parsed.data.director?.trim() ? parsed.data.director.trim() : null,
+      runtime: parsed.data.runtime?.trim() ? parsed.data.runtime.trim() : null,
+      genre: parsed.data.genre?.trim() ? parsed.data.genre.trim() : null,
+      rating: parsed.data.rating?.trim() ? parsed.data.rating.trim() : null,
       createdAt: now,
       updatedAt: now,
     });
@@ -355,6 +367,12 @@ app.post("/api/admin/movies/:id", async (req, res) => {
   const schema = z.object({
     title: z.string().max(500).optional(),
     posterUrl: z.string().max(2000).optional(),
+    bannerUrl: z.string().max(2000).optional(),
+    description: z.string().max(4000).optional(),
+    director: z.string().max(500).optional(),
+    runtime: z.string().max(100).optional(),
+    genre: z.string().max(300).optional(),
+    rating: z.string().max(100).optional(),
   });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) return redirectToast(res, "/admin/movies", "error", "INVALID_INPUT");
@@ -365,6 +383,12 @@ app.post("/api/admin/movies/:id", async (req, res) => {
     if (!m) return d;
     m.title = parsed.data.title?.trim() ? parsed.data.title.trim() : null;
     m.posterUrl = parsed.data.posterUrl?.trim() ? parsed.data.posterUrl.trim() : null;
+    m.bannerUrl = parsed.data.bannerUrl?.trim() ? parsed.data.bannerUrl.trim() : null;
+    m.description = parsed.data.description?.trim() ? parsed.data.description.trim() : null;
+    m.director = parsed.data.director?.trim() ? parsed.data.director.trim() : null;
+    m.runtime = parsed.data.runtime?.trim() ? parsed.data.runtime.trim() : null;
+    m.genre = parsed.data.genre?.trim() ? parsed.data.genre.trim() : null;
+    m.rating = parsed.data.rating?.trim() ? parsed.data.rating.trim() : null;
     m.updatedAt = new Date().toISOString();
     return d;
   });

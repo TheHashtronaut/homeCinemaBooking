@@ -37,7 +37,9 @@ export default async function AdminShowtimesPage() {
       </p>
 
       <section style={{ marginTop: 18 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Add a showtime</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Add a showtime
+        </h2>
         {movies.length === 0 ? (
           <div className="muted">Create a movie first.</div>
         ) : (
@@ -83,7 +85,9 @@ export default async function AdminShowtimesPage() {
       </section>
 
       <section style={{ marginTop: 22 }}>
-        <h2 style={{ margin: "0 0 10px 0", fontSize: 18 }}>Existing showtimes</h2>
+        <h2 className="panelTitle" style={{ marginTop: 0 }}>
+          Existing showtimes
+        </h2>
         {showtimes.length === 0 ? (
           <div className="muted">No showtimes yet.</div>
         ) : (
@@ -94,10 +98,9 @@ export default async function AdminShowtimesPage() {
               return (
                 <div
                   key={s.id}
+                  className="card"
                   style={{
                     padding: 14,
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.14)",
                     display: "flex",
                     justifyContent: "space-between",
                     gap: 14,
@@ -111,7 +114,7 @@ export default async function AdminShowtimesPage() {
                     </div>
                     <div className="muted" style={{ marginTop: 4, fontSize: 13 }}>
                       Remaining capacity:{" "}
-                      <span style={{ color: remaining > 0 ? "rgba(125,211,252,0.95)" : "rgba(252,165,165,0.95)" }}>
+                      <span style={{ color: remaining > 0 ? "rgba(var(--accent-rgb),0.95)" : "rgba(255,255,255,0.72)" }}>
                         {remaining}
                       </span>{" "}
                       / {s.capacity}
@@ -120,9 +123,12 @@ export default async function AdminShowtimesPage() {
 
                   <div style={{ display: "grid", justifyItems: "end", gap: 10, alignSelf: "center" }}>
                     <form action={`${BACKEND_URL}/api/admin/showtimes/${s.id}/delete`} method="post">
-                      <button className="btn btnDanger" type="submit" title="Delete this showtime permanently">
-                        Delete
-                      </button>
+                      <input
+                        className="actionLink actionLinkDanger"
+                        type="submit"
+                        value="Delete"
+                        title="Delete this showtime permanently"
+                      />
                     </form>
                     <div className="muted" style={{ fontSize: 12 }}>
                       {s.id.slice(0, 10)}…

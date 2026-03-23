@@ -4,8 +4,10 @@
   --card-border: rgba(255, 255, 255, 0.14);
   --text: rgba(255, 255, 255, 0.92);
   --muted: rgba(255, 255, 255, 0.62);
-  --accent: #7dd3fc;
-  --danger: #fca5a5;
+  --accent: #ff1f3d;
+  --accent-rgb: 255, 31, 61;
+  --danger: #ff1f3d;
+  --danger-rgb: 255, 31, 61;
 }
 
 html,
@@ -18,9 +20,11 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   color: var(--text);
-  background: radial-gradient(1200px 800px at 20% 0%, rgba(125, 211, 252, 0.18), transparent 60%),
-    radial-gradient(900px 650px at 80% 20%, rgba(167, 139, 250, 0.18), transparent 55%),
-    var(--bg);
+  background: radial-gradient(900px 520px at 20% 0%, rgba(var(--accent-rgb), 0.14), transparent 60%),
+    radial-gradient(1000px 700px at 85% 15%, rgba(var(--accent-rgb), 0.09), transparent 55%),
+    radial-gradient(800px 520px at 50% 100%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(180deg, #05060b 0%, var(--bg) 42%, #040409 100%);
+  background-attachment: fixed;
 }
 
 * {
@@ -33,16 +37,17 @@ a {
 }
 
 .container {
-  width: min(1100px, calc(100% - 32px));
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 24px 16px;
 }
 
 .siteHeader {
   position: sticky;
   top: 0;
   z-index: 10;
-  margin: -24px -0px 18px;
+  margin: 0 0 18px;
   padding: 14px 0;
   backdrop-filter: blur(12px);
   background: rgba(11, 15, 23, 0.72);
@@ -50,7 +55,8 @@ a {
 }
 
 .siteHeaderInner {
-  width: min(1100px, calc(100% - 32px));
+  width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -68,7 +74,22 @@ a {
 .siteLogo {
   font-weight: 800;
   letter-spacing: -0.03em;
-  font-size: 18px;
+  font-size: 19px;
+  position: relative;
+  padding-left: 10px;
+}
+
+.siteLogo::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--accent-rgb), 0.95);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
 }
 
 .siteNav {
@@ -84,11 +105,15 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.0);
   color: var(--text);
   background: rgba(255, 255, 255, 0.03);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
 .navLink:hover {
-  border-color: rgba(125, 211, 252, 0.45);
-  background: rgba(125, 211, 252, 0.08);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 
 .siteAuth {
@@ -133,18 +158,32 @@ a {
   margin-top: 14px;
   padding: 12px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(252, 165, 165, 0.55);
-  background: rgba(252, 165, 165, 0.12);
+  border: 1px solid rgba(var(--danger-rgb), 0.55);
+  background: rgba(var(--danger-rgb), 0.12);
   color: rgba(255, 255, 255, 0.95);
   font-size: 14px;
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -40% -20% auto -20%;
+  height: 120px;
+  transform: rotate(-8deg);
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.22), transparent);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
 }
 
 .cardPadding {
@@ -172,25 +211,239 @@ a {
   align-items: center;
   justify-content: center;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: 999px;
   border: 1px solid var(--card-border);
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
   cursor: pointer;
+  font-weight: 800;
 }
 
 .btn:hover {
-  border-color: rgba(125, 211, 252, 0.55);
+  border-color: rgba(var(--accent-rgb), 0.55);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.85);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.12);
 }
 
 .btnPrimary {
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.35), rgba(125, 211, 252, 0.08));
-  border-color: rgba(125, 211, 252, 0.6);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 1), rgba(var(--accent-rgb), 0.78));
+  border-color: rgba(var(--accent-rgb), 0.95);
+  color: rgba(255, 255, 255, 0.98);
 }
 
 .btnDanger {
-  background: linear-gradient(180deg, rgba(252, 165, 165, 0.25), rgba(252, 165, 165, 0.06));
-  border-color: rgba(252, 165, 165, 0.55);
+  background: linear-gradient(180deg, rgba(var(--danger-rgb), 0.25), rgba(var(--danger-rgb), 0.06));
+  border-color: rgba(var(--danger-rgb), 0.55);
+}
+
+/* Subtle motion + highlight for "cinema card" feel */
+.card {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34);
+  border-color: rgba(var(--accent-rgb), 0.22);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+@keyframes hcSheen {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+.showtimeCardForm {
+  position: relative;
+}
+
+.showtimeCardSubmitOverlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  z-index: 3;
+}
+
+.sessionTimeButtonForm {
+  display: inline-block;
+}
+
+.sessionTimeButton {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.sessionTimeButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.sessionTimeButton:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.9);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.18);
+}
+
+.sessionTimeButton:disabled,
+.sessionTimeButtonDisabled {
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.03);
+  transform: none;
+}
+
+.showtimeCardInner {
+  position: relative;
+  overflow: hidden;
+  transition: transform 160ms ease, border-color 160ms ease;
+  z-index: 1;
+}
+
+.showtimeCardForm:hover .showtimeCardInner {
+  transform: translateY(-1px);
+  border-color: rgba(var(--accent-rgb), 0.42);
+}
+
+.showtimeCardForm:hover .showtimeCardInner::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -60%;
+  width: 120%;
+  height: 140%;
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.22), transparent);
+  transform: translateX(-120%);
+  animation: hcSheen 550ms ease;
+  pointer-events: none;
+}
+
+.actionLink {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 750;
+  padding: 8px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.actionLink:hover {
+  color: rgba(var(--accent-rgb), 0.95);
+  background: rgba(var(--accent-rgb), 0.08);
+  transform: translateY(-1px);
+}
+
+.actionLinkDanger {
+  color: rgba(var(--accent-rgb), 0.95);
+}
+
+.actionLinkDanger:hover {
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.actionLinkPrimary {
+  color: rgba(var(--accent-rgb), 0.95);
+}
+
+.actionLinkPrimary:hover {
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+/* Booking status chips */
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+}
+
+.statusChip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.06);
+}
+
+.statusChipPending {
+  border-color: rgba(var(--accent-rgb), 0.30);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: rgba(var(--accent-rgb), 0.98);
+}
+
+.statusChipPending::before {
+  background: rgba(var(--accent-rgb), 0.95);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.14);
+}
+
+.statusChipApproved {
+  border-color: rgba(var(--accent-rgb), 0.30);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: rgba(var(--accent-rgb), 0.98);
+}
+
+.statusChipApproved::before {
+  background: rgba(var(--accent-rgb), 0.95);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.14);
+}
+
+.statusChipRejected,
+.statusChipCancelled {
+  border-color: rgba(var(--danger-rgb), 0.30);
+  background: rgba(var(--danger-rgb), 0.08);
+  color: rgba(var(--danger-rgb), 0.98);
+}
+
+.statusChipRejected::before,
+.statusChipCancelled::before {
+  background: rgba(var(--danger-rgb), 0.95);
+  box-shadow: 0 0 0 4px rgba(var(--danger-rgb), 0.14);
+}
+
+.showtimeCTA {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .hero {
@@ -211,6 +464,67 @@ a {
   margin: 0;
 }
 
+/* Event-style hero/banner container (used on homepage) */
+.cinemaHero {
+  position: relative;
+  z-index: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  padding: 26px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.14), rgba(255, 255, 255, 0.02));
+}
+
+.cinemaHero::after {
+  content: "";
+  position: absolute;
+  inset: -120px -80px auto -80px;
+  height: 240px;
+  background: radial-gradient(360px 180px at 18% 30%, rgba(var(--accent-rgb), 0.35), transparent 60%),
+    radial-gradient(380px 220px at 82% 10%, rgba(255, 255, 255, 0.12), transparent 58%);
+  pointer-events: none;
+}
+
+.heroBanner {
+  position: relative;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.12) 56%, rgba(0, 0, 0, 0.68) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.heroBgLayerWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroBgLayer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  filter: saturate(1.05) contrast(1.05);
+  animation: hcHeroBgIn 650ms ease both;
+}
+
+@keyframes hcHeroBgIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.72;
+  }
+}
+
 @media (max-width: 900px) {
   .heroInner {
     grid-template-columns: 1fr;
@@ -224,6 +538,441 @@ a {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+/* Homepage movie gallery (Hoyts-like horizontal rail) */
+.movieGalleryRail {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.movieGalleryCard {
+  flex: 0 0 180px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.movieGalleryCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.06);
+}
+
+.movieGalleryPoster {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.movieGalleryPoster img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 560px) {
+  .movieGalleryCard {
+    flex-basis: 140px;
+  }
+  .movieGalleryPoster img {
+    height: 200px;
+  }
+}
+
+/* Full-width banner gallery (uses bannerUrl / second image) */
+.mainGallerySection {
+  margin-top: 22px;
+}
+
+.mainGallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.mainGalleryCard {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 260px;
+  display: block;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.mainGalleryCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-rgb), 0.45);
+}
+
+.mainGalleryBanner {
+  position: absolute;
+  inset: 0;
+}
+
+.mainGalleryBanner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mainGalleryOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 18px 16px 18px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.55) 52%, rgba(0, 0, 0, 0.78) 100%);
+}
+
+.mainGalleryOverlay > div {
+  max-width: 680px;
+}
+
+/* Album-style featured gallery (Home page) */
+.featuredAlbum {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+  min-height: 320px;
+}
+
+.featuredAlbumGlow {
+  position: absolute;
+  inset: -60px;
+  background: radial-gradient(500px 240px at 20% 30%, rgba(var(--accent-rgb), 0.24), transparent 60%),
+    radial-gradient(520px 260px at 85% 15%, rgba(255, 255, 255, 0.06), transparent 55%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.featuredAlbumStage {
+  position: relative;
+  height: 320px;
+  display: grid;
+  place-items: center;
+}
+
+.featuredAlbumMainLink {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  text-decoration: none;
+}
+
+.featuredAlbumMainInner {
+  width: min(920px, 100%);
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+  animation: hcAlbumIn 420ms ease both;
+  position: relative;
+}
+
+@keyframes hcAlbumIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.featuredAlbumMainImg {
+  width: 100%;
+  height: 100%;
+}
+
+.featuredAlbumMainImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.featuredAlbumMainOverlay {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  padding: 14px 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.66) 40%, rgba(0, 0, 0, 0.78) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.featuredAlbumTitle {
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-size: 16px;
+}
+
+.featuredAlbumSubtitle {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+.featuredAlbumSide {
+  position: absolute;
+  top: 26px;
+  width: 360px;
+  height: 260px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  transform-origin: center;
+}
+
+.featuredAlbumSideImg {
+  width: 100%;
+  height: 100%;
+}
+
+.featuredAlbumSideImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.05) contrast(1.05);
+}
+
+.featuredAlbumSideLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.featuredAlbumSide1 {
+  left: 20px;
+  transform: rotate(-2.2deg) translateX(-30px) scale(0.94);
+  opacity: 0.85;
+}
+
+.featuredAlbumSide2 {
+  right: 20px;
+  transform: rotate(2.4deg) translateX(30px) scale(0.9);
+  opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+  .featuredAlbumStage {
+    height: 280px;
+  }
+  .featuredAlbumSide {
+    display: none;
+  }
+}
+
+
+/* Customer (Hoyts-like) layout */
+.customerLayout {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.panelTitle {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.moviePanel .gridMovies {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.moviePanel .gridMovies > a {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.moviePanel .moviePosterFrame {
+  width: 92px;
+  margin: 0;
+  aspect-ratio: 2 / 3;
+}
+
+/* Ensure override even though `.posterFrame` sets width: 100% */
+.moviePosterFrame.posterFrame {
+  width: 92px;
+  margin: 0;
+  aspect-ratio: 2 / 3;
+}
+
+.showtimesPanel .showtimesDateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.showtimesPanel .dateBlock {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+}
+
+.showtimesPanel .showtimeList {
+  display: grid;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .customerLayout {
+    grid-template-columns: 1fr;
+  }
+  .moviePanel .gridMovies > a {
+    flex-direction: row;
+  }
+  .moviePanel .moviePosterFrame {
+    width: 84px;
+  }
+
+  .moviePosterFrame.posterFrame {
+    width: 84px;
+  }
+}
+
+/* Movie detail page (Hoyts-like) */
+.movieDetailHero {
+  position: relative;
+  border-radius: 18px;
+  overflow: visible;
+  margin: -18px -18px 0 -18px;
+  padding: 18px;
+}
+
+.movieDetailBanner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  background-image: none;
+}
+
+.movieDetailBannerOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(11, 15, 23, 0.55) 35%, rgba(11, 15, 23, 0.92) 78%, rgba(11, 15, 23, 1) 100%);
+}
+
+.movieDetailHeroInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.movieDetailHeaderRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.movieDetailPoster {
+  width: 112px;
+}
+
+/* Ensure we override the generic `.posterFrame { width: 100% }` */
+.movieDetailPoster.posterFrame {
+  width: 112px;
+}
+
+.movieDetailMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.movieDetailMetaItem {
+  min-width: 120px;
+}
+
+.movieDetailMetaLabel {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.movieDetailMetaValue {
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(var(--accent-rgb), 0.95);
+}
+
+.movieDetailDescription {
+  margin: 10px 0 0 0;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13.5px;
+}
+
+.movieDetailShowtimes {
+  display: grid;
+  gap: 16px;
+}
+
+.movieDetailDateBlock {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+}
+
+.movieDetailShowtimeList {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .movieDetailHero {
+    margin: -16px -16px 0 -16px;
+    padding: 16px;
+  }
+  .movieDetailHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .movieDetailPoster {
+    width: 96px;
+  }
+  .movieDetailPoster.posterFrame {
+    width: 96px;
+  }
+  .movieDetailBanner {
+    height: 200px;
+  }
 }
 
 @media (max-width: 900px) {

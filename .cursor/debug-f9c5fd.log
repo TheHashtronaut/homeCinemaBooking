@@ -1,0 +1,2 @@
+{"sessionId":"f9c5fd","runId":"pre-fix","hypothesisId":"H1_next_params_is_promise","location":"src/app/customer/movie/[movieId]/page.tsx","message":"params_received","data":{"paramsIsPromise":true},"timestamp":1774270989891}
+{"sessionId":"f9c5fd","runId":"pre-fix","hypothesisId":"H1_next_params_is_promise","location":"src/app/customer/movie/[movieId]/page.tsx","message":"params_unwrapped","data":{"movieId":"4480b996-54fe-49f6-b732-32dec1e125a2"},"timestamp":1774270989968}

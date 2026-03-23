@@ -9,6 +9,12 @@ export type Movie = {
   id: string;
   title: string | null;
   posterUrl: string | null;
+  bannerUrl?: string | null;
+  description?: string | null;
+  director?: string | null;
+  runtime?: string | null;
+  genre?: string | null;
+  rating?: string | null;
   createdAt: string;
   updatedAt: string;
 };
