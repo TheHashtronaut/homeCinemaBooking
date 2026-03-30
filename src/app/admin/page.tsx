@@ -9,7 +9,17 @@ function formatSlot(startsAtIso: string, endsAtIso: string) {
   return { dateStr, timeRange: `${startStr} - ${endStr}` };
 }
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ movieId?: string; customerId?: string; from?: string; to?: string; sort?: string }> | {
+    movieId?: string;
+    customerId?: string;
+    from?: string;
+    to?: string;
+    sort?: string;
+  };
+}) {
   const user = await getCurrentUserFromBackend();
   if (!user || user.role !== "admin") {
     return (
@@ -19,9 +29,27 @@ export default async function AdminDashboardPage() {
       </main>
     );
   }
+
+  const sp = (searchParams ? await searchParams : undefined) ?? {};
+  const movieId = typeof sp.movieId === "string" ? sp.movieId.trim() : "";
+  const customerId = typeof sp.customerId === "string" ? sp.customerId.trim() : "";
+  const from = typeof sp.from === "string" ? sp.from.trim() : "";
+  const to = typeof sp.to === "string" ? sp.to.trim() : "";
+  const sort = typeof sp.sort === "string" ? sp.sort.trim() : "";
+
+  const qs = new URLSearchParams();
+  if (movieId) qs.set("movieId", movieId);
+  if (customerId) qs.set("customerId", customerId);
+  if (from) qs.set("from", from);
+  if (to) qs.set("to", to);
+  if (sort) qs.set("sort", sort);
+
+  const pendingPath = `/api/admin/bookings?status=PENDING${qs.toString() ? `&${qs.toString()}` : ""}`;
+  const approvedPath = `/api/admin/bookings?status=APPROVED${qs.toString() ? `&${qs.toString()}` : ""}`;
+
   const [pendingData, approvedData, moviesData, showtimesData] = await Promise.all([
-    backendFetch("/api/admin/bookings?status=PENDING"),
-    backendFetch("/api/admin/bookings?status=APPROVED"),
+    backendFetch(pendingPath),
+    backendFetch(approvedPath),
     backendFetch("/api/movies"),
     backendFetch("/api/showtimes"),
   ]);
@@ -38,6 +66,54 @@ export default async function AdminDashboardPage() {
       <p className="muted" style={{ marginTop: 6 }}>
         Approve requests (capacity max 10 per showtime). Overlaps are admin-decided.
       </p>
+
+      <section style={{ marginTop: 18 }}>
+        <form method="get" action="/admin" style={{ display: "grid", gap: 12 }}>
+          <div className="formGrid">
+            <div>
+              <div className="fieldLabel">Movie</div>
+              <select name="movieId" className="select" defaultValue={movieId}>
+                <option value="">All movies</option>
+                {movies.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title?.trim() ? m.title : "Untitled Movie"}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <div className="fieldLabel">Sort</div>
+              <select name="sort" className="select" defaultValue={sort}>
+                <option value="">Newest request</option>
+                <option value="requested_asc">Oldest request</option>
+                <option value="showtime_asc">Soonest showtime</option>
+                <option value="showtime_desc">Latest showtime</option>
+              </select>
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <div className="fieldLabel">Customer ID (optional)</div>
+              <input className="input" name="customerId" placeholder="Customer UUID" defaultValue={customerId} />
+            </div>
+            <div>
+              <div className="fieldLabel">From</div>
+              <input className="input" type="date" name="from" defaultValue={from} />
+            </div>
+            <div>
+              <div className="fieldLabel">To</div>
+              <input className="input" type="date" name="to" defaultValue={to} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button className="btn btnPrimary" type="submit">
+              Apply
+            </button>
+            {(movieId || customerId || from || to || sort) && (
+              <a className="btn" href="/admin">Reset</a>
+            )}
+          </div>
+        </form>
+      </section>
 
       <section style={{ marginTop: 18 }}>
         <h2 className="panelTitle" style={{ marginTop: 0 }}>
@@ -191,4 +267,3 @@ export default async function AdminDashboardPage() {
     </main>
   );
 }
-

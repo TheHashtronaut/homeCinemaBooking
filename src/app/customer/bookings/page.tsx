@@ -1,4 +1,4 @@
-import { backendFetch, getCurrentUserFromBackend } from "@/lib/backendApi";
+import { BACKEND_URL, backendFetch, getCurrentUserFromBackend } from "@/lib/backendApi";
 import { BookingRequest, Movie, Showtime } from "@/lib/types";
 
 function statusLabel(status: string) {
@@ -53,7 +53,17 @@ export default async function MyBookingsPage() {
             Please <a href="/auth/login">log in</a> to view your booking history.
           </div>
         ) : bookings.length === 0 ? (
-          <div className="muted">No booking requests yet.</div>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div className="muted">No booking requests yet.</div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a className="btn btnPrimary" href="/customer">
+                Browse movies & times
+              </a>
+              <a className="btn" href="/customer">
+                Request your first slot
+              </a>
+            </div>
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 12 }}>
             {bookings.map((b) => {
@@ -101,6 +111,14 @@ export default async function MyBookingsPage() {
                       <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
                         ID: {b.id.slice(0, 10)}…
                       </div>
+
+                      {b.status === "PENDING" ? (
+                        <form action={`${BACKEND_URL}/api/bookings/${b.id}/cancel`} method="post" style={{ marginTop: 12 }}>
+                          <button className="btn btnDanger" type="submit" style={{ width: "100%" }}>
+                            Cancel request
+                          </button>
+                        </form>
+                      ) : null}
                     </div>
                   </div>
                 </div>

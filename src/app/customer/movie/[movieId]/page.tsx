@@ -1,6 +1,8 @@
 import { BACKEND_URL, backendFetch, getCurrentUserFromBackend } from "@/lib/backendApi";
 import { Movie, Showtime } from "@/lib/types";
 import type { CSSProperties } from "react";
+import DateQuickJumpBar from "@/app/components/DateQuickJumpBar";
+import StoreLastViewedMovie from "@/app/components/StoreLastViewedMovie";
 
 function formatDate(d: Date) {
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
@@ -29,12 +31,27 @@ export default async function CustomerMoviePage({
   const movie = movies.find((m) => m.id === resolvedParams.movieId);
   const showtimes: Showtime[] = showtimesData?.showtimes ?? [];
 
-  const showtimesByDate = showtimes.reduce<Record<string, Showtime[]>>((acc, s) => {
-    const key = new Date(s.startsAt).toDateString();
-    acc[key] = acc[key] ?? [];
-    acc[key].push(s);
-    return acc;
-  }, {});
+  // Stable date grouping using YYYY-MM-DD (avoid locale-dependent `toDateString()` as map keys).
+  const showtimesByDate = new Map<string, Showtime[]>();
+  const dateOrder: string[] = [];
+  for (const s of showtimes) {
+    const dateId = new Date(s.startsAt).toISOString().slice(0, 10); // YYYY-MM-DD
+    if (!showtimesByDate.has(dateId)) {
+      showtimesByDate.set(dateId, []);
+      dateOrder.push(dateId);
+    }
+    showtimesByDate.get(dateId)!.push(s);
+  }
+
+  const dateEntries = dateOrder.map((dateId) => {
+    // Use noon to reduce timezone shift around midnight.
+    const dateObj = new Date(`${dateId}T12:00:00`);
+    return {
+      id: dateId,
+      label: formatDate(dateObj),
+      showtimes: showtimesByDate.get(dateId) ?? [],
+    };
+  });
 
   const now = new Date();
   // Mapping requirement:
@@ -45,6 +62,7 @@ export default async function CustomerMoviePage({
 
   return (
     <main className="card cardPadding">
+      <StoreLastViewedMovie movieId={resolvedParams.movieId} />
       <div className="movieDetailHero">
         <div
           className="movieDetailBanner"
@@ -124,18 +142,30 @@ export default async function CustomerMoviePage({
           Showtimes
         </h2>
 
+        <DateQuickJumpBar dates={dateEntries.map((d) => ({ id: d.id, label: d.label }))} />
+
         {showtimes.length === 0 ? (
-          <div className="muted">No showtimes in the next 14 days.</div>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div className="muted">No showtimes in the next 14 days.</div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a className="btn btnPrimary" href="/customer">
+                Browse movies & times
+              </a>
+              <a className="btn" href="/customer">
+                Back to movies
+              </a>
+            </div>
+          </div>
         ) : (
           <div className="movieDetailShowtimes">
-            {Object.keys(showtimesByDate).map((dateKey) => (
-              <div key={dateKey} className="movieDetailDateBlock">
+            {dateEntries.map(({ id: dateId, label, showtimes: showtimesForDate }) => (
+              <div key={dateId} id={`date-${dateId}`} className="movieDetailDateBlock">
                 <div className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
-                  {formatDate(new Date(dateKey))}
+                  {label}
                 </div>
 
                 <div className="movieDetailShowtimeList">
-                  {showtimesByDate[dateKey].map((s) => {
+                  {showtimesForDate.map((s) => {
                     const remaining = s.remaining ?? Math.max(0, s.capacity - (s.approvedCount ?? 0));
                     const isEnded = new Date(s.endsAt).getTime() <= now.getTime();
                     const canRequest =
@@ -216,11 +246,9 @@ export default async function CustomerMoviePage({
                           / {s.capacity}
                         </div>
 
-                        {bookingReason ? (
-                          <div className="muted" style={{ fontSize: 13 }}>
-                            {bookingReason}
-                          </div>
-                        ) : null}
+                        <div className="muted" style={{ fontSize: 13 }}>
+                          {bookingReason || "Not available"}
+                        </div>
                       </div>
                     );
                   })}

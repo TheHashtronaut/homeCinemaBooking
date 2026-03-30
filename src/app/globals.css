@@ -439,6 +439,14 @@ a {
   box-shadow: 0 0 0 4px rgba(var(--danger-rgb), 0.14);
 }
 
+.lastViewedGlow {
+  border-color: rgba(var(--accent-rgb), 0.75) !important;
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.28),
+    0 0 0 4px rgba(var(--accent-rgb), 0.18),
+    0 0 0 8px rgba(var(--accent-rgb), 0.08) !important;
+}
+
 .showtimeCTA {
   display: flex;
   flex-direction: column;
@@ -948,11 +956,63 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   padding: 14px;
+  scroll-margin-top: 96px;
 }
 
 .movieDetailShowtimeList {
   display: grid;
   gap: 12px;
+}
+
+/* Customer date quick jump (local-only) */
+.dateQuickJumpBar {
+  position: sticky;
+  top: 84px;
+  z-index: 5;
+  margin: 14px 0 6px 0;
+  padding: 10px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(11, 15, 23, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.dateQuickJumpInner {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.dateQuickJumpButton {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.dateQuickJumpButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--accent-rgb), 0.35);
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.dateQuickJumpButton:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.85);
+  outline-offset: 2px;
+}
+
+.dateQuickJumpButtonActive {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.14);
 }
 
 @media (max-width: 700px) {

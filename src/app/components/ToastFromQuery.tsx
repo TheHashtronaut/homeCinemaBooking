@@ -15,6 +15,10 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   NO_CAPACITY: "No capacity left for this showtime.",
   SHOWTIME_ENDED: "This showtime has already ended.",
   BOOKING_NOT_PENDING: "This booking request is no longer pending.",
+  BOOKING_CANCELLED: "Your booking request was cancelled.",
+  BULK_APPROVED: "Approved selected requests.",
+  PARTIAL_APPROVED: "Approved what fit the capacity. Some requests were left pending.",
+  BULK_REJECTED: "Rejected selected requests.",
   SESSION_EXPIRED: "Your session expired. Please log in again.",
 };
 

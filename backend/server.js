@@ -320,9 +320,31 @@ app.post("/api/auth/logout", async (req, res) => {
   return res.redirect(frontendUrl("/auth/login"));
 });
 
-app.get("/api/movies", async (_req, res) => {
+app.get("/api/movies", async (req, res) => {
   const db = await readDb();
-  const movies = db.movies.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const sort = typeof req.query.sort === "string" ? req.query.sort : "";
+
+  let movies = db.movies.slice();
+
+  if (q) {
+    const qLower = q.toLowerCase();
+    movies = movies.filter((m) => (m.title ?? "").toLowerCase().includes(qLower));
+  }
+
+  const normalizeSort = sort.toLowerCase();
+  if (normalizeSort === "title_asc") {
+    movies.sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "", undefined, { sensitivity: "base" }));
+  } else if (normalizeSort === "title_desc") {
+    movies.sort((a, b) => (b.title ?? "").localeCompare(a.title ?? "", undefined, { sensitivity: "base" }));
+  } else if (normalizeSort === "created_asc") {
+    movies.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  } else {
+    // Default: newest first
+    movies.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
   res.json({ movies });
 });
 
@@ -537,6 +559,31 @@ app.post("/api/bookings", async (req, res) => {
   return res.redirect(frontendUrl("/customer/bookings"));
 });
 
+app.post("/api/bookings/:id/cancel", async (req, res) => {
+  const user = await requireRole(req, res, "customer", "/auth/login");
+  if (!user) return;
+
+  const bookingId = req.params.id;
+  const db = await readDb();
+  const booking = db.bookingRequests.find((b) => b.id === bookingId);
+  if (!booking) return redirectToast(res, "/customer/bookings", "error", "NOT_FOUND");
+
+  if (booking.customerId !== user.id) return redirectToast(res, "/customer/bookings", "error", "FORBIDDEN");
+
+  if (booking.status !== "PENDING") return redirectToast(res, "/customer/bookings", "error", "BOOKING_NOT_PENDING");
+
+  await updateDb((d) => {
+    const target = d.bookingRequests.find((b) => b.id === bookingId);
+    if (!target) return d;
+    target.status = "CANCELLED";
+    target.cancelledAt = new Date().toISOString();
+    target.updatedAt = new Date().toISOString();
+    return d;
+  });
+
+  return redirectToast(res, "/customer/bookings", "success", "BOOKING_CANCELLED");
+});
+
 app.get("/api/bookings/me", async (req, res) => {
   const user = await requireRole(req, res, "customer");
   if (!user) return;
@@ -550,10 +597,71 @@ app.get("/api/bookings/me", async (req, res) => {
 app.get("/api/admin/bookings", async (req, res) => {
   if (!(await requireRole(req, res, "admin"))) return;
   const status = typeof req.query.status === "string" ? req.query.status : undefined;
+  const movieId = typeof req.query.movieId === "string" && req.query.movieId.trim() ? req.query.movieId.trim() : undefined;
+  const customerId = typeof req.query.customerId === "string" && req.query.customerId.trim() ? req.query.customerId.trim() : undefined;
+
+  const parseDate = (v) => {
+    if (typeof v !== "string" || !v.trim()) return null;
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return null;
+    return d;
+  };
+  const from = parseDate(req.query.from);
+  const to = parseDate(req.query.to);
+  const sort = typeof req.query.sort === "string" ? req.query.sort : "requested_desc";
   const db = await readDb();
   let rows = db.bookingRequests.slice();
   if (status) rows = rows.filter((r) => r.status === status);
-  rows.sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+
+  const showtimeById = new Map((db.showtimes ?? []).map((s) => [s.id, s]));
+
+  if (movieId) {
+    rows = rows.filter((r) => {
+      const st = showtimeById.get(r.showtimeId);
+      return st && st.movieId === movieId;
+    });
+  }
+
+  if (customerId) {
+    rows = rows.filter((r) => r.customerId === customerId);
+  }
+
+  if (from || to) {
+    rows = rows.filter((r) => {
+      const st = showtimeById.get(r.showtimeId);
+      if (!st) return false;
+      const t = new Date(st.startsAt);
+      if (Number.isNaN(t.getTime())) return false;
+      if (from && t < from) return false;
+      if (to && t > to) return false;
+      return true;
+    });
+  }
+
+  const normalizedSort = (sort ?? "").toLowerCase();
+  if (normalizedSort === "requested_asc") {
+    rows.sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+  } else if (normalizedSort === "showtime_asc") {
+    rows.sort((a, b) => {
+      const sa = showtimeById.get(a.showtimeId);
+      const sb = showtimeById.get(b.showtimeId);
+      const ta = sa ? sa.startsAt : "";
+      const tb = sb ? sb.startsAt : "";
+      return ta.localeCompare(tb);
+    });
+  } else if (normalizedSort === "showtime_desc") {
+    rows.sort((a, b) => {
+      const sa = showtimeById.get(a.showtimeId);
+      const sb = showtimeById.get(b.showtimeId);
+      const ta = sa ? sa.startsAt : "";
+      const tb = sb ? sb.startsAt : "";
+      return tb.localeCompare(ta);
+    });
+  } else {
+    // Default: newest requests first
+    rows.sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
+  }
+
   res.json({ bookings: rows });
 });
 
@@ -611,6 +719,116 @@ app.post("/api/admin/bookings/:id/cancel", async (req, res) => {
     cancelledAt: new Date().toISOString(),
     adminNote,
   });
+});
+
+app.post("/api/admin/bookings/bulk-approve", async (req, res) => {
+  if (!(await requireRole(req, res, "admin", "/admin"))) return;
+
+  const schema = z.object({
+    bookingIds: z.array(z.string().min(1)).min(1),
+    adminNote: z.string().optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return redirectToast(res, "/admin", "error", "INVALID_INPUT");
+
+  const bookingIds = parsed.data.bookingIds;
+  const adminNote = typeof parsed.data.adminNote === "string" && parsed.data.adminNote.trim() ? parsed.data.adminNote.trim() : undefined;
+
+  const db = await readDb();
+  const showtimeById = new Map((db.showtimes ?? []).map((s) => [s.id, s]));
+
+  const eligible = bookingIds
+    .map((id) => db.bookingRequests.find((b) => b.id === id))
+    .filter((b) => b && b.status === "PENDING");
+
+  // Group eligible bookings by showtime so we can enforce capacity per showtime.
+  const byShowtime = eligible.reduce((acc, b) => {
+    acc[b.showtimeId] = acc[b.showtimeId] ?? [];
+    acc[b.showtimeId].push(b);
+    return acc;
+  }, {});
+
+  const now = new Date().toISOString();
+  const approvedIds = new Set();
+
+  for (const [showtimeId, bookings] of Object.entries(byShowtime)) {
+    const st = showtimeById.get(showtimeId);
+    if (!st) continue;
+
+    const alreadyApprovedCount = (db.bookingRequests ?? []).filter(
+      (r) => r.showtimeId === showtimeId && r.status === "APPROVED"
+    ).length;
+
+    let remaining = st.capacity - alreadyApprovedCount;
+
+    // Approve oldest requests first to make capacity usage predictable.
+    bookings
+      .slice()
+      .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt))
+      .forEach((b) => {
+        if (remaining <= 0) return;
+        approvedIds.add(b.id);
+        remaining -= 1;
+      });
+  }
+
+  const eligibleCount = eligible.length;
+  const approvedCount = approvedIds.size;
+  const toastCode = approvedCount === eligibleCount && eligibleCount > 0 ? "BULK_APPROVED" : "PARTIAL_APPROVED";
+
+  await updateDb((d) => {
+    const targetSet = approvedIds;
+    for (const b of d.bookingRequests ?? []) {
+      if (!targetSet.has(b.id)) continue;
+      if (b.status !== "PENDING") continue;
+      b.status = "APPROVED";
+      b.approvedAt = now;
+      b.adminNote = adminNote;
+      b.updatedAt = now;
+    }
+    return d;
+  });
+
+  return redirectToast(res, "/admin", "success", toastCode);
+});
+
+app.post("/api/admin/bookings/bulk-reject", async (req, res) => {
+  if (!(await requireRole(req, res, "admin", "/admin"))) return;
+
+  const schema = z.object({
+    bookingIds: z.array(z.string().min(1)).min(1),
+    adminNote: z.string().optional(),
+    rejectionReason: z.string().optional(),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return redirectToast(res, "/admin", "error", "INVALID_INPUT");
+
+  const bookingIds = parsed.data.bookingIds;
+  const adminNote = typeof parsed.data.adminNote === "string" && parsed.data.adminNote.trim() ? parsed.data.adminNote.trim() : undefined;
+  const rejectionReason =
+    typeof parsed.data.rejectionReason === "string" && parsed.data.rejectionReason.trim() ? parsed.data.rejectionReason.trim() : undefined;
+
+  const db = await readDb();
+  const now = new Date().toISOString();
+  const pendingSet = new Set(
+    (db.bookingRequests ?? [])
+      .filter((b) => bookingIds.includes(b.id) && b.status === "PENDING")
+      .map((b) => b.id)
+  );
+
+  await updateDb((d) => {
+    for (const b of d.bookingRequests ?? []) {
+      if (!pendingSet.has(b.id)) continue;
+      b.status = "REJECTED";
+      b.rejectedAt = now;
+      b.rejectionReason = rejectionReason;
+      b.adminNote = adminNote;
+      b.updatedAt = now;
+    }
+    return d;
+  });
+
+  return redirectToast(res, "/admin", "success", "BULK_REJECTED");
 });
 
 seedDefaultShowtimes(7)
